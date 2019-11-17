@@ -12,7 +12,8 @@ November 5th, 2019
 """
 
 class Poem:
-    
+
+
     def __init__(self):
         """
         Constructor for Poem Class
@@ -21,73 +22,93 @@ class Poem:
         @params None
         """
         self.body = ""
-        self.Lastwords = []
-    
+        self.last_words = []
+        self.rhyming_words = []
+
+    def add(self, add_on):
         """
         Adds a string to the body of the poem
         
         @returns None
         @params The string that is being added to the poem body
         """        
-    def add(self, add_on):
+    
         self.body = self.body + add_on + " "
-        
+
+    def new_end(self, end):
         """
         Add The last word of each sentences or to the list
         So, it can later be called later when trying to rhyme
         
         @returns None
         @params New word at the end of sentence 
-        """        
-    def new_end(self, end):
-        self.Lastwords.append(end)
-        
+        """          
+        self.last_words.append(end)
+
+    def get_ends(self):
         """
         gets list of last words
         
         @returns List of all of the last words in the sentences
         @params None
-        """        
-    def get_ends(self):
-        return self.Lastwords
+        """          
+        return self.last_words
     
+    def get_matches(self):
+        """
+        gets words that rhyme List
+        
+        @returns List of all of the last words in the sentences that rhyme with another ending
+        @params None
+        """
+        return self.rhyming_words
+    
+    def new_match(self, new_word):
+        """
+        Add the s word to the list of rhyming words
+        
+        @returns None
+        @params New word that rhymes
+        """            
+        self.rhyming_words.append(new_word)
+    
+    def result(self):
         """
         Getter function for the poem body
         
         @returns string of body
         @params None
-        """
-    def result(self):
+        """        
         return self.body
-    
+
+    def score(self):
         """
         Evaluation of poem
         
         @returns The number of words that rhyme
         @params None
-        """        
-    def score(self):
-        return len(self.Lastwords)
-    
+        """           
+        return len(self.rhyming_words)
+
+    def sign(self):
         """
         Gets rid of the author signature so it can be signed
         
         @returns None
         @params None
-        """
-    def sign(self):
-        bodyinlist = self.body.split()
-        bodyinlist.pop()
-        self.body = ' '.join(bodyinlist)
-    
+        """        
+        body_in_list = self.body.split()
+        body_in_list.pop()
+        self.body = ' '.join(body_in_list)
+
+    def __repr__(self):
         """
         Print representation of the poem class
         Signs it as well
     
         @returns None
         @params None
-        """    
-    def __repr__(self):
+        """        
         raw = self.body.split()
         i = 0
         for words in raw:
@@ -96,8 +117,10 @@ class Poem:
             i = i + 1
         raw.append("\n Different Centuries meet System\n")
         return ' '.join(raw)
-    
+
+
 class Database:
+    
     
     def __init__(self):
         """
@@ -106,11 +129,10 @@ class Database:
         @returns None
         @params None
         """
-        self.Frequency = {}
-        self.authorFirst = []
-    
-    
-    def readFileAsString(self, author_name = None):
+        self.frequency = {}
+        self.author_first = []
+
+    def read_file_as_string(self, author_name = None):
         """
         Reads all of the files in Poems and adds the poems to the self.Frequency
         The writing style of poets is very different so it is suggested that an author is picked
@@ -122,11 +144,10 @@ class Database:
             author_name = author_name.lower()
             
         for file in glob2.glob("Poems/*"):
-            print(file)
-            pdfFileObj = open(file, 'rb') 
-            pdfReader = PyPDF2.PdfFileReader(pdfFileObj)
-            PAGE_STARTS = 2 
-            i = PAGE_STARTS
+            pdf_file_obj = open(file, 'rb') 
+            pdf_reader = PyPDF2.PdfFileReader(pdf_file_obj)
+            page_starts = 2 
+            i = page_starts 
             
             author_poems = []
             name = file.split("_")
@@ -134,12 +155,12 @@ class Database:
             title = first + name[1]
             title = title #gets the last author that writes the last letter in the poem
             
-            self.authorFirst.append(title)
+            self.author_first.append(title)
             
             if author_name == None or author_name == title: #if we want a specific author it gets a specific author
-                while( i < pdfReader.numPages):
-                    pageObj = pdfReader.getPage(i) 
-                    one_poem = pageObj.extractText()
+                while( i < pdf_reader.numPages):
+                    page_obj = pdf_reader.getPage(i) 
+                    one_poem = page_obj.extractText()
                     s = one_poem.lower()
                     #Some of the punctuation combines words
                     #We fix the pdfreadersmistakes
@@ -174,18 +195,17 @@ class Database:
                     
                     gram = ngrams(poem_list, 3)
                     for gr in gram:
-                        self.Add(' '.join(gr))
+                        self.add(' '.join(gr))
                         
                     i += 1
 
-        if author_name in self.authorFirst or author_name == None:
+        if author_name in self.author_first or author_name == None:
             next
         else:
-            print(self.authorFirst)   
+            print(self.author_first)   
             raise( Exception(author_name + " is not a valid author. Choose one of the following and type it how you see it"))
                         
-
-    def Add(self, words):
+    def add(self, words):
         """
         Adds an n-gram to the list of Frequency
         
@@ -193,55 +213,64 @@ class Database:
         @params n-gram which is a word
         """        
         curr = 1
-        if words in self.Frequency.keys():
-            curr = self.Frequency[words]
-            self.Frequency[words] = curr + 1
+        if words in self.frequency.keys():
+            curr = self.frequency[words]
+            self.frequency[words] = curr + 1
         else:
-            self.Frequency[words] = curr 
+            self.frequency[words] = curr 
 
-    def rhyme(self, prevend, gram):
+    def rhyme(self, poem, gram):
+        """
+        Recieves the most recent n-gram and the poem class. 
+        Checks to see if the ending could rhyme with a previous ending
+        While only using words that are in the n -gram 
+        
+        @returns String, The value that is (not) replacing the last sentence of the word, the value should also rhyme with previous sentences
+        @params Instance of an unfinished poem class, The n- gram that includes the end of the sentence
+        """
         last = gram.split()[2]
         punct = last[-1]
         last = last[:-1]
         
         #This runs for the first ending of a sentence
-        if len(prevend.get_ends()) == 0:
-            prevend.new_end(last)
+        if len(poem.get_ends()) == 0:
+            poem.new_end(last)
             return last + punct
         
         #set of all possible combinations that rhyme with with the list of las words
         matches = []
-        for words in prevend.get_ends():
+        for words in poem.get_ends():
             matches = matches + pronouncing.rhymes(words)
-        allpos = set(matches)
+        all_pos = set(matches)
         
         #Get a set of all possible words that match with every possible end that comes could come next in the n gram
         #so selecting a random item from the selector would make the poem act like normal
-        selectpos = set(self.generate_selector(gram.split()[0], gram.split()[1]))
-        selectposendingsList = []
-        for items in selectpos:
-            selectposendingsList.append(items.split()[-1])
-        selectposending = set(selectposendingsList)
+        select_pos = set(self.generate_selector(gram.split()[0], gram.split()[1]))
+        select_pos_endings_list = []
+        for items in select_pos:
+            select_pos_endings_list.append(items.split()[-1])
+        select_pos_ending = set(select_pos_endings_list)
         
         #Get a set of words that rhyme with the end of sentences and comes next in the n-gram
-        matches = selectposending.intersection(allpos)
-        
+        matches = select_pos_ending.intersection(all_pos)
         # if true then there is no matches and we print the original word next in the n-gram
         if len(matches) == 0 :
-            prevend.new_end(last)
+            poem.new_end(last)
             return last + punct
         else:#else we exchange words
             replacement = random.choice(list(matches))
-            prevend.new_end(replacement)
+            poem.new_end(replacement)
+            poem.new_match(replacement)
+            print("YESSS")
             return replacement + punct
-        
+              
+    def write(self):
         """
         Uses the Frequency table to write a poem
         
         @returns String of poem created
         @params An optional parameter of the authors name
-        """        
-    def write(self):
+        """          
         selector = []
         new_word = ""
         body = Poem()
@@ -268,12 +297,11 @@ class Database:
             second = adding
             body.add(adding)
             
-            if (new_word.split()[-1] in self.authorFirst): #if an author name is seen then it is the end of the poem
+            if (new_word.split()[-1] in self.author_first): #if an author name is seen then it is the end of the poem
                 body.sign()
                 return body
-            
 
-        
+
     def generate_selector(self, first = None, second = None):
         """
         Creates a list of all of the possible n-grams that match the words pasesed in
@@ -285,8 +313,8 @@ class Database:
         selector = [] 
         if (first == None and second == None):#if we are looking for the fequency of words
             #ran once for each poem
-            for word in self.Frequency:
-                occur = self.Frequency[word]
+            for word in self.frequency:
+                occur = self.frequency[word]
                 i = 0
                 while (i < occur):
                     
@@ -295,19 +323,19 @@ class Database:
         elif second == None:
             #frequency withthe first word in n-gram determined
             #ran once
-            for word in self.Frequency:
+            for word in self.frequency:
                 
                 if first == word.split()[0]:
-                    occur = self.Frequency[word]
+                    occur = self.frequency[word]
                     i = 0
                     
                     while (i < occur):
                         selector.append(word)
                         i = i + 1   
         else:#n-gram with the first two words set
-            for word in self.Frequency:
+            for word in self.frequency:
                 if first == word.split()[0] and second == word.split()[1]:
-                    occur = self.Frequency[word]
+                    occur = self.frequency[word]
                     i = 0
                     while (i < occur):
                         selector.append(word)
@@ -318,25 +346,23 @@ class Database:
         
 def main():
     test = Database()
-    #test.readFileAsString("oscarwilde")
     #above will only read poems from the oscarwilder
-    test.readFileAsString() 
+    test.read_file_as_string() 
+    #test.read_file_as_string("oscarwilde") 
     
-    List_of_poems = []
+    list_of_poems = []
     number_of_poems = 2
     
     i = 0
     while(i < number_of_poems ):
-        List_of_poems.append(test.write())
+        list_of_poems.append(test.write())
         i += 1
-        
     #Finding the method with the highest score is my method for evaluation 
-    best_poem = List_of_poems[0]
-    for items in List_of_poems:
+    best_poem = list_of_poems[0]
+    for items in list_of_poems:
         if items.score() > best_poem.score():
             best_poem = items
             
     print(best_poem)
     os.system('say ' + best_poem.result())
-
 main()
