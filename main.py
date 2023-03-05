@@ -15,10 +15,10 @@ November 5th, 2019
 
 
 
-def main():
+def main(author_name=None):
     test = Database()
     #above will only read poems from the oscarwilder
-    test.read_file_as_string() 
+    test.read_file_as_string(author_name) 
 
     list_of_poems = []
     number_of_poems = 2
