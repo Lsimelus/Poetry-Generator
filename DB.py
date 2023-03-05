@@ -1,122 +1,10 @@
 import glob2
-import PyPDF2
+import PyPDF3
 import random
 from nltk.util import ngrams
 import pronouncing
 import os
-
-"""
-Different Centuries meet
-By Lyndbergh Simelus
-November 5th, 2019
-"""
-
-class Poem:
-
-
-    def __init__(self):
-        """
-        Constructor for Poem Class
-        
-        @returns None
-        @params None
-        """
-        self.body = ""
-        self.last_words = []
-        self.rhyming_words = []
-
-    def add(self, add_on):
-        """
-        Adds a string to the body of the poem
-        
-        @returns None
-        @params The string that is being added to the poem body
-        """        
-    
-        self.body = self.body + add_on + " "
-
-    def new_end(self, end):
-        """
-        Add The last word of each sentences or to the list
-        So, it can later be called later when trying to rhyme
-        
-        @returns None
-        @params New word at the end of sentence 
-        """          
-        self.last_words.append(end)
-
-    def get_ends(self):
-        """
-        gets list of last words
-        
-        @returns List of all of the last words in the sentences
-        @params None
-        """          
-        return self.last_words
-    
-    def get_matches(self):
-        """
-        gets words that rhyme List
-        
-        @returns List of all of the last words in the sentences that rhyme with another ending
-        @params None
-        """
-        return self.rhyming_words
-    
-    def new_match(self, new_word):
-        """
-        Add the s word to the list of rhyming words
-        
-        @returns None
-        @params New word that rhymes
-        """            
-        self.rhyming_words.append(new_word)
-    
-    def result(self):
-        """
-        Getter function for the poem body
-        
-        @returns string of body
-        @params None
-        """        
-        return self.body
-
-    def score(self):
-        """
-        Evaluation of poem
-        
-        @returns The number of words that rhyme
-        @params None
-        """           
-        return len(self.rhyming_words)
-
-    def sign(self):
-        """
-        Gets rid of the author signature so it can be signed
-        
-        @returns None
-        @params None
-        """        
-        body_in_list = self.body.split()
-        body_in_list.pop()
-        self.body = ' '.join(body_in_list)
-
-    def __repr__(self):
-        """
-        Print representation of the poem class
-        Signs it as well
-    
-        @returns None
-        @params None
-        """        
-        raw = self.body.split()
-        i = 0
-        for words in raw:
-            if i%15 == 0:
-                raw.insert(i, "\n")
-            i = i + 1
-        raw.append("\n Different Centuries meet System\n")
-        return ' '.join(raw)
+from Poems import Poem
 
 
 class Database:
@@ -145,7 +33,7 @@ class Database:
             
         for file in glob2.glob("Poems/*"):
             pdf_file_obj = open(file, 'rb') 
-            pdf_reader = PyPDF2.PdfFileReader(pdf_file_obj)
+            pdf_reader = PyPDF3.PdfFileReader(pdf_file_obj)
             page_starts = 2 
             i = page_starts 
             
@@ -261,7 +149,6 @@ class Database:
             replacement = random.choice(list(matches))
             poem.new_end(replacement)
             poem.new_match(replacement)
-            print("YESSS")
             return replacement + punct
               
     def write(self):
@@ -285,7 +172,7 @@ class Database:
             try:
                 new_word = random.choice(self.generate_selector(first, second))#new word picked
             except:
-                print("There were no more possibilities the poem ended early");
+                #print("There were no more possibilities the poem ended early");
                 return body
             
             adding = new_word.split()[2]
@@ -344,25 +231,3 @@ class Database:
     
 
         
-def main():
-    test = Database()
-    #above will only read poems from the oscarwilder
-    test.read_file_as_string() 
-    #test.read_file_as_string("oscarwilde") 
-    
-    list_of_poems = []
-    number_of_poems = 2
-    
-    i = 0
-    while(i < number_of_poems ):
-        list_of_poems.append(test.write())
-        i += 1
-    #Finding the method with the highest score is my method for evaluation 
-    best_poem = list_of_poems[0]
-    for items in list_of_poems:
-        if items.score() > best_poem.score():
-            best_poem = items
-            
-    print(best_poem)
-    os.system('say ' + best_poem.result())
-main()
